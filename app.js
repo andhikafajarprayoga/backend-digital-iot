@@ -12,6 +12,15 @@ admin.initializeApp({
 const app = express();
 app.use(bodyParser.json());
 
+// Middleware untuk log semua request
+app.use((req, res, next) => {
+	console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+	console.log('Query params:', req.query);
+	console.log('Body:', req.body);
+	console.log('Route matching for:', req.url);
+	next();
+});
+
 // Contoh endpoint root
 app.get('/', (req, res) => {
 	res.send('Backend IoT Edukasi siap!');
@@ -29,6 +38,13 @@ app.listen(PORT, () => {
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
 
+// Mount universal routes FIRST before other /api routes 
+const universalRoutes = require('./routes/universal/deviceControl');
+console.log('Mounting universal routes at /api/universal...');
+app.use('/api/universal', universalRoutes);
+console.log('Universal routes mounted successfully!');
+
+// Mount other routes after universal
 const deviceRoutes = require('./routes/control-led');
 app.use('/api', deviceRoutes);
 
@@ -40,3 +56,6 @@ app.use('/api', buzzerRoutes);
 
 const statusRoutes = require('./routes/ujian1');
 app.use('/api', statusRoutes);
+
+const monitoringSuhuRoutes = require('./routes/monitoringSuhu');
+app.use('/api', monitoringSuhuRoutes);
