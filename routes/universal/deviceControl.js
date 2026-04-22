@@ -38,8 +38,6 @@ router.post('/device/:userId/:deviceName', async (req, res) => {
   }
 });
 
-// Endpoint project/title bebas (isi key apa aja) versi params:
-// POST /api/universal/project/:userId/:title
 // Body harus object, akan disimpan ke path: {userId}/{title}/value/{key}
 router.post('/project/:userId/:title', async (req, res) => {
   const { userId, title } = req.params;
@@ -79,17 +77,6 @@ router.get('/project/:userId/:title', async (req, res) => {
   }
 });
 
-// Endpoint custom gabungan (sekali request bisa set banyak kontrol) versi params:
-// POST /api/universal/custom/:userId/:title
-// Body contoh:
-// {
-//   "led": "ON",
-//   "servo": 90,
-//   "buzzer": "OFF",
-//   "suhu": 28.5,
-//   "kelembapan": 70,
-//   "devices": { "pump": "ON", "fan": "OFF" }
-// }
 router.post('/custom/:userId/:title', async (req, res) => {
   const { userId, title } = req.params;
   const { led, servo, buzzer, suhu, kelembapan, devices } = req.body;
