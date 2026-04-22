@@ -2,42 +2,70 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
-// Endpoint kontrol servo (POST)
-router.post('/servo', async (req, res) => {
-  const { position, userId } = req.body;
+const getServoRef = (userId) => admin.database().ref(`${userId}/control-servo/servo`);
+
+// Endpoint kontrol servo (POST) versi path param: /api/servo/:userId
+router.post('/servo/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { position } = req.body;
   if (position === undefined || !userId) {
     return res.status(400).json({ message: 'Position dan userId wajib diisi.' });
   }
   try {
-    // Update posisi servo di Realtime Database
-    await admin.database().ref(`${userId}/control-servo/servo`).set(position);
+    await getServoRef(userId).set(position);
     res.status(200).json({ message: `Servo di user ${userId} berhasil diupdate ke posisi ${position}.` });
   } catch (error) {
     res.status(500).json({ message: 'Gagal update servo.', error: error.message });
   }
 });
 
+// Endpoint kontrol servo (POST) alias berbasis fitur: /api/control-servo/:userId
+router.post('/control-servo/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { position } = req.body;
+  if (position === undefined || !userId) {
+    return res.status(400).json({ message: 'Position dan userId wajib diisi.' });
+  }
+  try {
+    await getServoRef(userId).set(position);
+    res.status(200).json({ message: `Servo di user ${userId} berhasil diupdate ke posisi ${position}.` });
+  } catch (error) {
+    res.status(500).json({ message: 'Gagal update servo.', error: error.message });
+  }
+});
 
-// Endpoint GET posisi servo via query parameter (debug)
-router.get('/servo', async (req, res) => {
-  const userId = req.query.userId;
+// Endpoint GET posisi servo versi path param: /api/servo/:userId
+router.get('/servo/:userId', async (req, res) => {
+  const { userId } = req.params;
   if (!userId) {
     return res.status(400).json({ message: 'userId wajib diisi.' });
   }
-  console.log('GET servo request for userId (query):', userId);
   try {
-    const path = `${userId}/control-servo/servo`;
-    console.log('Database path (query):', path);
-    const ref = admin.database().ref(path);
-    const snapshot = await ref.once('value');
+    const snapshot = await getServoRef(userId).once('value');
     const position = snapshot.val();
-    console.log('Data from database (query):', position);
     if (position === null) {
       return res.status(404).json({ message: 'Data tidak ditemukan.' });
     }
     res.status(200).json({ position });
   } catch (error) {
-    console.error('Error (query):', error);
+    res.status(500).json({ message: 'Gagal mengambil data.', error: error.message });
+  }
+});
+
+// Endpoint GET posisi servo alias berbasis fitur: /api/control-servo/:userId
+router.get('/control-servo/:userId', async (req, res) => {
+  const { userId } = req.params;
+  if (!userId) {
+    return res.status(400).json({ message: 'userId wajib diisi.' });
+  }
+  try {
+    const snapshot = await getServoRef(userId).once('value');
+    const position = snapshot.val();
+    if (position === null) {
+      return res.status(404).json({ message: 'Data tidak ditemukan.' });
+    }
+    res.status(200).json({ position });
+  } catch (error) {
     res.status(500).json({ message: 'Gagal mengambil data.', error: error.message });
   }
 });

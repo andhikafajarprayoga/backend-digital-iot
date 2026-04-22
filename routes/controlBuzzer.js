@@ -2,17 +2,19 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
-// Endpoint kontrol buzzer (POST)
-router.post('/buzzer', async (req, res) => {
-  const { status, userId } = req.body;
-  if (!status || !userId) {
-    return res.status(400).json({ message: 'Status dan userId wajib diisi.' });
+const isValidBuzzerStatus = (status) => status === 'ON' || status === 'OFF';
+
+// Endpoint versi params (disarankan untuk device): /api/control-buzzer/:userId
+router.post('/control-buzzer/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+  if (!userId || !status) {
+    return res.status(400).json({ message: 'userId dan status wajib diisi.' });
   }
-  if (status !== 'ON' && status !== 'OFF') {
+  if (!isValidBuzzerStatus(status)) {
     return res.status(400).json({ message: 'Status harus ON atau OFF.' });
   }
   try {
-    // Update status buzzer di Realtime Database dengan turunan
     await admin.database().ref(`${userId}/control-buzzer/buzzer`).set(status);
     res.status(200).json({ message: `Buzzer di user ${userId} berhasil diupdate ke status ${status}.` });
   } catch (error) {
@@ -20,17 +22,14 @@ router.post('/buzzer', async (req, res) => {
   }
 });
 
-module.exports = router;
-
-// Endpoint GET status buzzer via query parameter (debug)
-router.get('/buzzer', async (req, res) => {
-  const userId = req.query.userId;
+// Endpoint GET versi params (disarankan untuk device): /api/control-buzzer/:userId
+router.get('/control-buzzer/:userId', async (req, res) => {
+  const { userId } = req.params;
   if (!userId) {
     return res.status(400).json({ message: 'userId wajib diisi.' });
   }
   try {
-    const ref = admin.database().ref(`${userId}/control-buzzer/buzzer`);
-    const snapshot = await ref.once('value');
+    const snapshot = await admin.database().ref(`${userId}/control-buzzer/buzzer`).once('value');
     const status = snapshot.val();
     if (status === null) {
       return res.status(404).json({ message: 'Data tidak ditemukan.' });
@@ -40,3 +39,5 @@ router.get('/buzzer', async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil data.', error: error.message });
   }
 });
+
+module.exports = router;

@@ -2,34 +2,34 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
-// Endpoint LED ON/OFF
-router.post('/led', async (req, res) => {
-  const { status, featureId, userId } = req.body;
-  if (!status || !featureId || !userId) {
-    return res.status(400).json({ message: 'Status, featureId, dan userId wajib diisi.' });
+const isValidLedStatus = (status) => status === 'ON' || status === 'OFF';
+
+// Endpoint versi params (disarankan untuk device): /api/control-led/:userId
+router.post('/control-led/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+  if (!userId || !status) {
+    return res.status(400).json({ message: 'userId dan status wajib diisi.' });
   }
-  if (status !== 'ON' && status !== 'OFF') {
+  if (!isValidLedStatus(status)) {
     return res.status(400).json({ message: 'Status harus ON atau OFF.' });
   }
   try {
-    // Update status LED di Realtime Database dengan path unik
-    await admin.database().ref(`${userId}/${featureId}/led`).set(status);
-    res.status(200).json({ message: `LED ${status} untuk fitur ${featureId} milik user ${userId} berhasil diupdate.` });
+    await admin.database().ref(`${userId}/control-led/led`).set(status);
+    res.status(200).json({ message: `LED ${status} untuk fitur control-led milik user ${userId} berhasil diupdate.` });
   } catch (error) {
     res.status(500).json({ message: 'Gagal update LED.', error: error.message });
   }
 });
 
-module.exports = router;
-
-
-// Endpoint GET status fitur (misal LED)
-router.get('/:userId/:feature', async (req, res) => {
-  const { userId, feature } = req.params;
+// Endpoint GET versi params (disarankan untuk device): /api/control-led/:userId
+router.get('/control-led/:userId', async (req, res) => {
+  const { userId } = req.params;
+  if (!userId) {
+    return res.status(400).json({ message: 'userId wajib diisi.' });
+  }
   try {
-    // Ambil status dari Realtime Database
-    const ref = admin.database().ref(`${userId}/${feature}/led`);
-    const snapshot = await ref.once('value');
+    const snapshot = await admin.database().ref(`${userId}/control-led/led`).once('value');
     const status = snapshot.val();
     if (status === null) {
       return res.status(404).json({ message: 'Data tidak ditemukan.' });
@@ -39,3 +39,5 @@ router.get('/:userId/:feature', async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil data.', error: error.message });
   }
 });
+
+module.exports = router;
