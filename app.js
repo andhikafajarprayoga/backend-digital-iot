@@ -44,7 +44,24 @@ console.log('Mounting universal routes at /api/universal...');
 app.use('/api/universal', universalRoutes);
 console.log('Universal routes mounted successfully!');
 
-// Mount other routes after universal
+// ============================================
+// NEW: Nested Category Routes (recommended)
+// ============================================
+// /api/control/led/:userId, /api/control/servo/:userId, etc.
+const controlRoutes = require('./routes/control');
+app.use('/api/control', controlRoutes);
+
+// /api/monitoring/dht/:userId, /api/monitoring/ldr/:userId, etc.
+const monitoringRoutes = require('./routes/monitoring');
+app.use('/api/monitoring', monitoringRoutes);
+
+// /api/status/all/:userId, /api/status/control/:userId, etc.
+const statusCategoryRoutes = require('./routes/status');
+app.use('/api/status', statusCategoryRoutes);
+
+// ============================================
+// LEGACY: Old flat routes (backward compatible)
+// ============================================
 const deviceRoutes = require('./routes/control-led');
 app.use('/api', deviceRoutes);
 
@@ -59,3 +76,23 @@ app.use('/api', statusRoutes);
 
 const monitoringSuhuRoutes = require('./routes/monitoringSuhu');
 app.use('/api', monitoringSuhuRoutes);
+
+// ============================================
+// API Discovery: GET /api - List all categories
+// ============================================
+app.get('/api', (req, res) => {
+	res.status(200).json({
+		name: 'Digital IoT Education API',
+		version: '2.0',
+		categories: [
+			{ category: 'control', path: '/api/control', description: 'Kontrol aktuator (LED, Servo, Buzzer, Relay, RGB LED, Motor DC, LCD)' },
+			{ category: 'monitoring', path: '/api/monitoring', description: 'Monitoring sensor (DHT, LDR, Ultrasonic, Soil Moisture, Gas, PIR, Rain, Custom)' },
+			{ category: 'status', path: '/api/status', description: 'Status gabungan semua device & sensor' },
+			{ category: 'universal', path: '/api/universal', description: 'Universal device control' },
+		],
+		legacy: {
+			note: 'Route lama masih aktif untuk backward compatibility',
+			routes: ['/api/control-led/:userId', '/api/servo/:userId', '/api/control-buzzer/:userId', '/api/monitoring-dht/:userId', '/api/status/:userId']
+		}
+	});
+});
