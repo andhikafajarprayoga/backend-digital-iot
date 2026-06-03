@@ -26,14 +26,6 @@ app.get('/', (req, res) => {
 	res.send('Backend IoT Edukasi siap!');
 });
 
-// Server listen
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-	console.log(`Server berjalan di port ${PORT}`);
-});
-
-
-
 // Import routes
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
@@ -95,4 +87,31 @@ app.get('/api', (req, res) => {
 			routes: ['/api/control-led/:userId', '/api/servo/:userId', '/api/control-buzzer/:userId', '/api/monitoring-dht/:userId', '/api/status/:userId']
 		}
 	});
+});
+
+// ============================================
+// Server listen - HARUS PALING TERAKHIR
+// ============================================
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+	console.log(`Server berjalan di port ${PORT}`);
+	console.log(`Server siap menerima request di http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+	if (err.code === 'EADDRINUSE') {
+		console.error(`\n❌ ERROR: Port ${PORT} sudah dipakai proses lain!`);
+		console.error(`Solusi: jalankan "netstat -ano | findstr :${PORT}" untuk cari PID, lalu "taskkill /PID <pid> /F"`);
+	} else {
+		console.error('Server error:', err);
+	}
+});
+
+// Handle uncaught errors agar server tidak crash diam-diam
+process.on('uncaughtException', (err) => {
+	console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+	console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

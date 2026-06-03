@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
+// GET /api/control/lcd - Info cara penggunaan endpoint LCD
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    device: 'lcd',
+    category: 'control',
+    description: 'Kontrol LCD Display 16x2 (text + line)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/control/lcd/{userId}',
+        url: `${baseUrl}/api/control/lcd/{userId}`,
+        description: 'Set text LCD — UI kirim perintah, ESP32 baca nanti',
+        body: { text: 'max 16 karakter', line: '1 | 2' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/control/lcd/{userId}',
+        url: `${baseUrl}/api/control/lcd/{userId}`,
+        description: 'Ambil text LCD terkini dari database',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 polling GET endpoint ini setiap 1-5 detik untuk baca text terbaru',
+      url: `${baseUrl}/api/control/lcd/{userId}`,
+      method: 'GET',
+    },
+    for_ui: {
+      description: 'UI POST untuk kirim text, GET untuk tampilkan text terkini',
+      post_url: `${baseUrl}/api/control/lcd/{userId}`,
+      get_url: `${baseUrl}/api/control/lcd/{userId}`,
+    },
+  });
+});
+
 // POST /api/control/lcd/:userId - Set LCD display text
 // Body: { "text": "Hello World", "line": 1 } (line 1 or 2 for 16x2 LCD)
 router.post('/:userId', async (req, res) => {

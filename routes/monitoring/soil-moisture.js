@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
+// GET /api/monitoring/soil-moisture - Info cara penggunaan endpoint Soil Moisture
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    sensor: 'soil-moisture',
+    category: 'monitoring',
+    description: 'Monitoring Soil Moisture — Kelembapan Tanah (0-100%)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/monitoring/soil-moisture/{userId}',
+        url: `${baseUrl}/api/monitoring/soil-moisture/{userId}`,
+        description: 'Kirim data sensor soil moisture — ESP32 POST data ke database',
+        body: { moisture: '0-100 (persen)' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/monitoring/soil-moisture/{userId}',
+        url: `${baseUrl}/api/monitoring/soil-moisture/{userId}`,
+        description: 'Ambil data soil moisture terkini dari database — untuk UI tampilkan',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 POST data sensor ke endpoint ini secara berkala',
+      url: `${baseUrl}/api/monitoring/soil-moisture/{userId}`,
+      method: 'POST',
+      body: { moisture: 45 },
+    },
+    for_ui: {
+      description: 'UI GET endpoint ini untuk tampilkan data sensor terkini',
+      get_url: `${baseUrl}/api/monitoring/soil-moisture/{userId}`,
+    },
+  });
+});
+
 // POST /api/monitoring/soil-moisture/:userId - Kirim data kelembapan tanah
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

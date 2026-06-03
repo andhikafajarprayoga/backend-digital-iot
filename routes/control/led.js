@@ -4,6 +4,41 @@ const admin = require('firebase-admin');
 
 const isValidStatus = (status) => status === 'ON' || status === 'OFF';
 
+// GET /api/control/led - Info cara penggunaan endpoint LED
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    device: 'led',
+    category: 'control',
+    description: 'Kontrol LED (ON/OFF)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/control/led/{userId}',
+        url: `${baseUrl}/api/control/led/{userId}`,
+        description: 'Set status LED — UI kirim perintah, ESP32 baca nanti',
+        body: { status: 'ON | OFF' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/control/led/{userId}',
+        url: `${baseUrl}/api/control/led/{userId}`,
+        description: 'Ambil status LED terkini dari database',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 polling GET endpoint ini setiap 1-5 detik untuk baca perintah terbaru',
+      url: `${baseUrl}/api/control/led/{userId}`,
+      method: 'GET',
+    },
+    for_ui: {
+      description: 'UI POST untuk kirim perintah, GET untuk tampilkan status terkini',
+      post_url: `${baseUrl}/api/control/led/{userId}`,
+      get_url: `${baseUrl}/api/control/led/{userId}`,
+    },
+  });
+});
+
 // POST /api/control/led/:userId - Set LED status (ON/OFF)
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

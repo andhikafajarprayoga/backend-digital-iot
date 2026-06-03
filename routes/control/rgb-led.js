@@ -7,6 +7,41 @@ const isValidColor = (value) => {
   return !isNaN(num) && num >= 0 && num <= 255;
 };
 
+// GET /api/control/rgb-led - Info cara penggunaan endpoint RGB LED
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    device: 'rgb-led',
+    category: 'control',
+    description: 'Kontrol RGB LED (warna custom r, g, b: 0-255)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/control/rgb-led/{userId}',
+        url: `${baseUrl}/api/control/rgb-led/{userId}`,
+        description: 'Set warna RGB LED — UI kirim perintah, ESP32 baca nanti',
+        body: { r: '0-255', g: '0-255', b: '0-255' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/control/rgb-led/{userId}',
+        url: `${baseUrl}/api/control/rgb-led/{userId}`,
+        description: 'Ambil warna RGB LED terkini dari database',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 polling GET endpoint ini setiap 1-5 detik untuk baca warna terbaru',
+      url: `${baseUrl}/api/control/rgb-led/{userId}`,
+      method: 'GET',
+    },
+    for_ui: {
+      description: 'UI POST untuk kirim warna, GET untuk tampilkan warna terkini',
+      post_url: `${baseUrl}/api/control/rgb-led/{userId}`,
+      get_url: `${baseUrl}/api/control/rgb-led/{userId}`,
+    },
+  });
+});
+
 // POST /api/control/rgb-led/:userId - Set RGB LED color
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

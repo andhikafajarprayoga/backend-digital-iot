@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
+// GET /api/monitoring/ldr - Info cara penggunaan endpoint LDR
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    sensor: 'ldr',
+    category: 'monitoring',
+    description: 'Monitoring LDR — Intensitas Cahaya (0-1023)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/monitoring/ldr/{userId}',
+        url: `${baseUrl}/api/monitoring/ldr/{userId}`,
+        description: 'Kirim data sensor LDR — ESP32 POST data ke database',
+        body: { intensity: '0-1023' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/monitoring/ldr/{userId}',
+        url: `${baseUrl}/api/monitoring/ldr/{userId}`,
+        description: 'Ambil data LDR terkini dari database — untuk UI tampilkan',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 POST data sensor ke endpoint ini secara berkala',
+      url: `${baseUrl}/api/monitoring/ldr/{userId}`,
+      method: 'POST',
+      body: { intensity: 750 },
+    },
+    for_ui: {
+      description: 'UI GET endpoint ini untuk tampilkan data sensor terkini',
+      get_url: `${baseUrl}/api/monitoring/ldr/{userId}`,
+    },
+  });
+});
+
 // POST /api/monitoring/ldr/:userId - Kirim data LDR (cahaya)
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

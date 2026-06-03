@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
+// GET /api/monitoring/rain - Info cara penggunaan endpoint Rain Sensor
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    sensor: 'rain',
+    category: 'monitoring',
+    description: 'Monitoring Rain Sensor — Deteksi Hujan (0-1023)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/monitoring/rain/{userId}',
+        url: `${baseUrl}/api/monitoring/rain/{userId}`,
+        description: 'Kirim data rain sensor — ESP32 POST data ke database',
+        body: { rainLevel: '0-1023 (otomatis isRaining jika < 500)' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/monitoring/rain/{userId}',
+        url: `${baseUrl}/api/monitoring/rain/{userId}`,
+        description: 'Ambil data rain sensor terkini dari database — untuk UI tampilkan',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 POST data sensor ke endpoint ini secara berkala',
+      url: `${baseUrl}/api/monitoring/rain/{userId}`,
+      method: 'POST',
+      body: { rainLevel: 300 },
+    },
+    for_ui: {
+      description: 'UI GET endpoint ini untuk tampilkan data rain sensor terkini',
+      get_url: `${baseUrl}/api/monitoring/rain/{userId}`,
+    },
+  });
+});
+
 // POST /api/monitoring/rain/:userId - Kirim data rain sensor
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

@@ -4,6 +4,41 @@ const admin = require('firebase-admin');
 
 const isValidStatus = (status) => status === 'ON' || status === 'OFF';
 
+// GET /api/control/buzzer - Info cara penggunaan endpoint Buzzer
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    device: 'buzzer',
+    category: 'control',
+    description: 'Kontrol Buzzer (ON/OFF)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/control/buzzer/{userId}',
+        url: `${baseUrl}/api/control/buzzer/{userId}`,
+        description: 'Set status buzzer — UI kirim perintah, ESP32 baca nanti',
+        body: { status: 'ON | OFF' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/control/buzzer/{userId}',
+        url: `${baseUrl}/api/control/buzzer/{userId}`,
+        description: 'Ambil status buzzer terkini dari database',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 polling GET endpoint ini setiap 1-5 detik untuk baca perintah terbaru',
+      url: `${baseUrl}/api/control/buzzer/{userId}`,
+      method: 'GET',
+    },
+    for_ui: {
+      description: 'UI POST untuk kirim perintah, GET untuk tampilkan status terkini',
+      post_url: `${baseUrl}/api/control/buzzer/{userId}`,
+      get_url: `${baseUrl}/api/control/buzzer/{userId}`,
+    },
+  });
+});
+
 // POST /api/control/buzzer/:userId - Set buzzer status (ON/OFF)
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;

@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
+// GET /api/monitoring/ultrasonic - Info cara penggunaan endpoint Ultrasonic
+router.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.status(200).json({
+    sensor: 'ultrasonic',
+    category: 'monitoring',
+    description: 'Monitoring Ultrasonic — Jarak (cm)',
+    usage: {
+      post: {
+        method: 'POST',
+        path: '/api/monitoring/ultrasonic/{userId}',
+        url: `${baseUrl}/api/monitoring/ultrasonic/{userId}`,
+        description: 'Kirim data sensor ultrasonic — ESP32 POST data ke database',
+        body: { distance: 'number (cm)' },
+      },
+      get: {
+        method: 'GET',
+        path: '/api/monitoring/ultrasonic/{userId}',
+        url: `${baseUrl}/api/monitoring/ultrasonic/{userId}`,
+        description: 'Ambil data ultrasonic terkini dari database — untuk UI tampilkan',
+      },
+    },
+    for_esp32: {
+      description: 'ESP32 POST data sensor ke endpoint ini secara berkala',
+      url: `${baseUrl}/api/monitoring/ultrasonic/{userId}`,
+      method: 'POST',
+      body: { distance: 25.4 },
+    },
+    for_ui: {
+      description: 'UI GET endpoint ini untuk tampilkan data sensor terkini',
+      get_url: `${baseUrl}/api/monitoring/ultrasonic/{userId}`,
+    },
+  });
+});
+
 // POST /api/monitoring/ultrasonic/:userId - Kirim data ultrasonic (jarak)
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;
